@@ -1,0 +1,16 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/Hub/hub.db
+/Hub/appsettings.json
+/Hub/appsettings.Development.json
+/Hub/logs/
+.vs/
+Hub/obj/
+Hub/bin/
+Hub/.config/
+WinTracker/bin/
+WinTracker/obj/
+WinTrackerSession/obj/
+WinTrackerSession/bin/

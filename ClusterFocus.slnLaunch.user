@@ -1,0 +1,17 @@
+[
+  {
+    "Name": "Solution",
+    "Projects": [
+      {
+        "Path": "Hub\\Hub.csproj",
+        "Action": "Start",
+        "DebugTarget": "https"
+      },
+      {
+        "Path": "WinTrackerSession\\WinTrackerSession.csproj",
+        "Action": "Start",
+        "DebugTarget": "WinTrackerSession"
+      }
+    ]
+  }
+]
