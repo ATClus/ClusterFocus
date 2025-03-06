@@ -1,7 +1,6 @@
 ﻿using Hub.Application;
 using Hub.Domain;
 using Microsoft.EntityFrameworkCore;
-using System.Threading.Tasks;
 
 namespace Hub.Infrastructure.Repositories
 {
@@ -19,6 +18,13 @@ namespace Hub.Infrastructure.Repositories
             return await _context.Applications
                 .Include(a => a.Sessions)
                 .FirstOrDefaultAsync(a => a.ProcessName == processName && a.Date == date);
+        }
+
+        public async Task<ApplicationOS> GetByProcessNameAsync(string processName)
+        {
+            return await _context.Applications
+                .Include(a => a.Sessions)
+                .FirstOrDefaultAsync(a => a.ProcessName == processName);
         }
 
         public async Task AddAsync(ApplicationOS application)

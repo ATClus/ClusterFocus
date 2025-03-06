@@ -1,13 +1,7 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-using Hub.Application;
+﻿using Hub.Application;
 using Hub.Domain;
 using Hub.Presentation;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using WinTracker;
 
 namespace Hub.Infrastructure.Services
@@ -25,28 +19,28 @@ namespace Hub.Infrastructure.Services
             _hubContext = hubContext;
             _scopeFactory = scopeFactory;
             _logger = logger;
-            _logger.LogInformation("Inicializando WindowsWindowTrackingService...");
+            _logger.LogInformation("Initializing WindowsWindowTrackingService...");
 
             try
             {
                 _activeWindowTracker = new ActiveWindowTracker();
                 _activeWindowTracker.ActiveWindowChanged += OnActiveWindowChanged;
-                _logger.LogInformation("ActiveWindowTracker instanciado com sucesso.");
+                _logger.LogInformation("ActiveWindowTracker instantiated successfully.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Erro ao instanciar o ActiveWindowTracker.");
+                _logger.LogError(ex, "Error instantiating ActiveWindowTracker.");
             }
         }
 
         private async void OnActiveWindowChanged(object sender, ActiveWindowEventArgs e)
         {
             DateTime now = DateTime.Now;
-            _logger.LogDebug("Evento ActiveWindowChanged disparado para: {ProcessName} às {Now}", e.ProcessName, now);
+            _logger.LogDebug("ActiveWindowChanged event triggered for: {ProcessName} at {Now}", e.ProcessName, now);
 
             if (e.ProcessName == _lastProcessName)
             {
-                _logger.LogDebug("Processo inalterado ({ProcessName}), ignorando.", e.ProcessName);
+                _logger.LogDebug("Unchanged process ({ProcessName}), ignoring.", e.ProcessName);
                 return;
             }
 
@@ -54,22 +48,20 @@ namespace Hub.Infrastructure.Services
             {
                 var appRepository = scope.ServiceProvider.GetRequiredService<IApplicationRepository>();
 
-                // Se havia um aplicativo sendo trackeado, interrompe o tracking
                 if (!string.IsNullOrEmpty(_lastProcessName))
                 {
                     var previousApp = await appRepository.GetByProcessAndDateAsync(_lastProcessName, DateOnly.FromDateTime(now));
                     if (previousApp != null)
                     {
                         previousApp.StopTracking(now);
-                        _logger.LogDebug("StopTracking chamado para: {ProcessName}", _lastProcessName);
+                        _logger.LogDebug("StopTracking called for: {ProcessName}", _lastProcessName);
                         await appRepository.SaveChangesAsync();
-                        _logger.LogInformation("Tracking parado para: {ProcessName}. Tempo total: {TotalTime}",
+                        _logger.LogInformation("Tracking stopped for: {ProcessName}. Total time: {TotalTime}",
                             _lastProcessName, previousApp.TotalTimeSpent);
                         await _hubContext.Clients.All.SendAsync("WindowTrackingStopped", _lastProcessName, previousApp.TotalTimeSpent.TotalSeconds);
                     }
                 }
 
-                // Atualiza o registro para o novo aplicativo
                 _lastProcessName = e.ProcessName;
                 var currentDate = DateOnly.FromDateTime(now);
                 var appRecord = await appRepository.GetByProcessAndDateAsync(e.ProcessName, currentDate);
@@ -79,24 +71,24 @@ namespace Hub.Infrastructure.Services
                     appRecord = new ApplicationOS(e.ProcessName, e.ProcessName);
                     appRecord.StartTracking(now);
                     await appRepository.AddAsync(appRecord);
-                    _logger.LogInformation("Novo registro criado para: {ProcessName}", e.ProcessName);
+                    _logger.LogInformation("New record created for: {ProcessName}", e.ProcessName);
                 }
                 else
                 {
                     appRecord.StartTracking(now);
-                    _logger.LogInformation("Tracking retomado para: {ProcessName}", e.ProcessName);
+                    _logger.LogInformation("Tracking resumed for: {ProcessName}", e.ProcessName);
                 }
 
                 await appRepository.SaveChangesAsync();
-                _logger.LogDebug("Dados salvos no banco para o processo: {ProcessName}", e.ProcessName);
+                _logger.LogDebug("Data saved in database for process: {ProcessName}", e.ProcessName);
                 await _hubContext.Clients.All.SendAsync("WindowTrackingStarted", e.ProcessName);
             }
         }
 
         protected override Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Execução do WindowsWindowTrackingService iniciada.");
-            stoppingToken.Register(() => _logger.LogInformation("Token de cancelamento disparado."));
+            _logger.LogInformation("WindowTrackingService execution started.");
+            stoppingToken.Register(() => _logger.LogInformation("Cancellation token triggered."));
             return Task.Delay(Timeout.Infinite, stoppingToken);
         }
 
@@ -108,7 +100,7 @@ namespace Hub.Infrastructure.Services
                 _activeWindowTracker.ActiveWindowChanged -= OnActiveWindowChanged;
                 _activeWindowTracker.Dispose();
             }
-            _logger.LogInformation("Serviço de tracking de janelas finalizado.");
+            _logger.LogInformation("Windows window tracking service has been terminated.");
         }
     }
 }

@@ -1,8 +1,5 @@
-﻿using System;
-using System.Drawing;
-using System.Windows.Forms;
-using Microsoft.AspNetCore.SignalR.Client;
-using WinTracker; // Sua library com ActiveWindowTracker e ActiveWindowEventArgs
+﻿using Microsoft.AspNetCore.SignalR.Client;
+using WinTracker;
 
 namespace WinTrackerSession
 {
@@ -11,19 +8,15 @@ namespace WinTrackerSession
         private NotifyIcon _trayIcon;
         private ContextMenuStrip _contextMenu;
         private HubConnection _hubConnection;
-        // Armazena o nome do processo atualmente monitorado (tracking ativo)
         private string _currentProcessName = string.Empty;
-        // Instância para capturar os eventos de mudança de janela
         private ActiveWindowTracker _activeWindowTracker;
 
-        // Campos para os itens de menu (para controle do Enabled)
         private ToolStripMenuItem _startItem;
         private ToolStripMenuItem _stopItem;
         private ToolStripMenuItem _quitItem;
 
         public MainForm()
         {
-            // Se não estiver usando o designer, não é necessário chamar InitializeComponent();
             // InitializeComponent();
 
             InitializeTrayIcon();
@@ -32,7 +25,6 @@ namespace WinTrackerSession
             _activeWindowTracker = new ActiveWindowTracker();
             _activeWindowTracker.ActiveWindowChanged += ActiveWindowTracker_ActiveWindowChanged;
 
-            // Atualiza o estado dos itens de menu conforme o tracking (inicialmente parado)
             UpdateMenuItems();
         }
 
@@ -55,17 +47,14 @@ namespace WinTrackerSession
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Erro ao conectar ao Hub: {ex.Message}");
+                MessageBox.Show($"Error connecting to the Hub: {ex.Message}");
             }
         }
 
-        // Callback do ActiveWindowTracker – chamado quando há mudança na janela ativa
         private async void ActiveWindowTracker_ActiveWindowChanged(object sender, ActiveWindowEventArgs e)
         {
             string newProcess = e.ProcessName;
-            //Console.WriteLine($"Janela ativa detectada: {newProcess} (PID: {e.ProcessId})");
 
-            // Se houve mudança de janela, envia os comandos de Stop para o tracking anterior e Start para o novo
             if (!string.Equals(newProcess, _currentProcessName, StringComparison.OrdinalIgnoreCase))
             {
                 if (!string.IsNullOrEmpty(_currentProcessName))
@@ -76,7 +65,6 @@ namespace WinTrackerSession
                     }
                     catch (Exception ex)
                     {
-                        //Console.WriteLine($"Erro ao parar tracking: {ex.Message}");
                     }
                 }
 
@@ -87,7 +75,6 @@ namespace WinTrackerSession
                 }
                 catch (Exception ex)
                 {
-                    //Console.WriteLine($"Erro ao iniciar tracking: {ex.Message}");
                 }
                 UpdateMenuItems();
             }
@@ -97,7 +84,6 @@ namespace WinTrackerSession
         {
             _contextMenu = new ContextMenuStrip();
 
-            // Cria e armazena o item "Start"
             _startItem = new ToolStripMenuItem("Start");
             _startItem.Click += async (sender, e) =>
             {
@@ -107,7 +93,6 @@ namespace WinTrackerSession
                 }
                 else
                 {
-                    // Exemplo: define um valor fixo ou permite escolha do usuário
                     _currentProcessName = "ClusterFocus";
                     try
                     {
@@ -123,7 +108,6 @@ namespace WinTrackerSession
             };
             _contextMenu.Items.Add(_startItem);
 
-            // Cria e armazena o item "Stop"
             _stopItem = new ToolStripMenuItem("Stop");
             _stopItem.Click += async (sender, e) =>
             {
@@ -148,7 +132,6 @@ namespace WinTrackerSession
             };
             _contextMenu.Items.Add(_stopItem);
 
-            // Cria e armazena o item "Quit"
             _quitItem = new ToolStripMenuItem("Quit");
             _quitItem.Click += (sender, e) =>
             {
@@ -157,26 +140,23 @@ namespace WinTrackerSession
             };
             _contextMenu.Items.Add(_quitItem);
 
-            // Cria o NotifyIcon
             _trayIcon = new NotifyIcon
             {
-                Icon = new Icon("appicon.ico"), // Certifique-se de que "appicon.ico" esteja na pasta de saída
+                Icon = new Icon("appicon.ico"),
                 Text = "WinTracker Session",
                 ContextMenuStrip = _contextMenu,
                 Visible = true
             };
         }
 
-        // Atualiza o estado dos itens do menu com base no tracking ativo
         private void UpdateMenuItems()
         {
-            // Se _currentProcessName estiver preenchido (tracking ativo), desabilita "Start" e habilita "Stop"
             if (!string.IsNullOrEmpty(_currentProcessName))
             {
                 _startItem.Enabled = false;
                 _stopItem.Enabled = true;
             }
-            else // Caso contrário, habilita "Start" e desabilita "Stop"
+            else
             {
                 _startItem.Enabled = true;
                 _stopItem.Enabled = false;
@@ -185,7 +165,6 @@ namespace WinTrackerSession
 
         protected override void OnLoad(EventArgs e)
         {
-            // Oculta o formulário principal para que ele não apareça na taskbar
             Visible = false;
             ShowInTaskbar = false;
             base.OnLoad(e);

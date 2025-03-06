@@ -1,5 +1,4 @@
-﻿using System;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace WinTracker
@@ -33,11 +32,11 @@ namespace WinTracker
 
             if (_hook == IntPtr.Zero)
             {
-                Debug.WriteLine("Falha ao registrar o hook de eventos.");
+                Debug.WriteLine("Failed to register event hook.");
             }
             else
             {
-                Debug.WriteLine("Hook de eventos registrado com sucesso.");
+                Debug.WriteLine("Event hook registered successfully.");
             }
         }
 
@@ -61,12 +60,12 @@ namespace WinTracker
                 GetWindowThreadProcessId(hwnd, out uint processId);
                 Process proc = Process.GetProcessById((int)processId);
                 string processName = proc.ProcessName;
-                Debug.WriteLine($"Evento disparado: ProcessId = {processId}, ProcessName = {processName}");
+                Debug.WriteLine($"Event triggered: ProcessId = {processId}, ProcessName = {processName}");
                 ActiveWindowChanged?.Invoke(this, new ActiveWindowEventArgs((int)processId, processName));
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"Erro no WinEventProc: {ex.Message}");
+                Debug.WriteLine($"Error in WinEventProc: {ex.Message}");
                 ActiveWindowChanged?.Invoke(this, new ActiveWindowEventArgs(0, "Unknown"));
             }
         }

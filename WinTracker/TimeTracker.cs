@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace WinTracker
+﻿namespace WinTracker
 {
     public class TimeRecord
     {
@@ -30,14 +27,12 @@ namespace WinTracker
         {
             DateTime now = DateTime.Now;
 
-            // Finaliza o registro atual, se houver
             if (_currentRecord != null)
             {
                 _currentRecord.Duration = now - _currentRecord.StartTime;
                 _records.Add(_currentRecord);
             }
 
-            // Inicia o registro para a nova janela, se válida
             if (e.ProcessId != 0)
             {
                 _currentRecord = new TimeRecord

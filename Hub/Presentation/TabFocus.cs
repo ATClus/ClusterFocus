@@ -1,9 +1,6 @@
 ﻿using Hub.Application;
 using Hub.Domain;
 using Microsoft.AspNetCore.SignalR;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Hub.Presentation
 {
@@ -22,12 +19,10 @@ namespace Hub.Presentation
             var currentDate = DateOnly.FromDateTime(DateTime.Now);
             var now = DateTime.Now;
 
-            // Busca a Tab para o dia atual
-            var tab = await _tabRepository.GetByUrlAndDateAsync(domain, currentDate);
+            var tab = await _tabRepository.GetByUrlAsync(domain);
 
             if (tab == null)
             {
-                // Cria a Tab e o TimeEntry do dia
                 tab = new Tab(title, url);
                 var timeEntry = new TimeEntry(now) { Tab = tab };
                 tab.Sessions.Add(timeEntry);
@@ -35,19 +30,16 @@ namespace Hub.Presentation
             }
             else
             {
-                // Em vez de procurar "activeEntry", procure o TimeEntry "do dia"
                 var entryDoDia = tab.Sessions
                     .FirstOrDefault(e => e.Date == currentDate.ToDateTime(TimeOnly.MinValue).Date);
 
                 if (entryDoDia == null)
                 {
-                    // Não existe registro do dia: cria um
                     var timeEntry = new TimeEntry(now) { Tab = tab };
                     tab.Sessions.Add(timeEntry);
                 }
                 else
                 {
-                    // Retoma o tracking do mesmo registro do dia
                     entryDoDia.StartTracking(now);
                 }
             }
@@ -63,19 +55,15 @@ namespace Hub.Presentation
             var currentDate = DateOnly.FromDateTime(DateTime.Now);
             var now = DateTime.Now;
 
-            // Busca a Tab pelo domínio e data
-            var tab = await _tabRepository.GetByUrlAndDateAsync(domain, currentDate);
+            var tab = await _tabRepository.GetByUrlAsync(domain);
             if (tab != null)
             {
-                // Busca o registro ativo (TimeEntry com CurrentSessionStart definido)
                 var activeEntry = tab.Sessions.LastOrDefault(te => te.CurrentSessionStart.HasValue);
                 if (activeEntry != null)
                 {
-                    // Para o tracking: atualiza EndTime, acumula o tempo do período e "pausa" o tracking
                     activeEntry.StopTracking(now);
                 }
 
-                // Atualiza o banco imediatamente na troca de foco
                 await _tabRepository.SaveChangesAsync();
 
                 await Clients.All.SendAsync("TabTrackingStopped", domain, tab.TotalTimeSpent.TotalSeconds);

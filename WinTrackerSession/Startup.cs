@@ -36,7 +36,6 @@ namespace WinTrackerSession
                           .AllowCredentials();
                 });
             });
-            // Se necessário, adicione outros serviços ou hosted services
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -47,11 +46,9 @@ namespace WinTrackerSession
                 dbContext.Database.Migrate();
             }
 
-            // Configure o pipeline HTTP
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                //app.UseOpenApi();
             }
 
             app.UseCors("BrowserPolicy");

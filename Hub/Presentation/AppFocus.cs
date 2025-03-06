@@ -1,9 +1,7 @@
-﻿using Hub.Application;
+﻿
+using Hub.Application;
 using Hub.Domain;
 using Microsoft.AspNetCore.SignalR;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Hub.Presentation
 {
@@ -21,12 +19,10 @@ namespace Hub.Presentation
             var currentDate = DateOnly.FromDateTime(DateTime.Now);
             var now = DateTime.Now;
 
-            // Busca a ApplicationOS para o dia atual
-            var app = await _appRepository.GetByProcessAndDateAsync(processName, currentDate);
+            var app = await _appRepository.GetByProcessNameAsync(processName);
 
             if (app == null)
             {
-                // Cria a ApplicationOS e o TimeEntry do dia
                 app = new ApplicationOS(processName, processName);
                 var timeEntry = new TimeEntry(now) { Application = app };
                 app.Sessions.Add(timeEntry);
@@ -34,18 +30,15 @@ namespace Hub.Presentation
             }
             else
             {
-                // Procura o TimeEntry "do dia"
                 var entryDoDia = app.Sessions.FirstOrDefault(e => e.Date == currentDate.ToDateTime(TimeOnly.MinValue).Date);
 
                 if (entryDoDia == null)
                 {
-                    // Se não existe registro para o dia, cria um novo
                     var timeEntry = new TimeEntry(now) { Application = app };
                     app.Sessions.Add(timeEntry);
                 }
                 else
                 {
-                    // Retoma o tracking do mesmo registro do dia
                     entryDoDia.StartTracking(now);
                 }
             }
@@ -59,15 +52,12 @@ namespace Hub.Presentation
             var currentDate = DateOnly.FromDateTime(DateTime.Now);
             var now = DateTime.Now;
 
-            // Busca a ApplicationOS pelo processName e data
-            var app = await _appRepository.GetByProcessAndDateAsync(processName, currentDate);
+            var app = await _appRepository.GetByProcessNameAsync(processName);
             if (app != null)
             {
-                // Busca o TimeEntry ativo (com CurrentSessionStart definido)
                 var activeEntry = app.Sessions.LastOrDefault(te => te.CurrentSessionStart.HasValue);
                 if (activeEntry != null)
                 {
-                    // Para o tracking: calcula e acumula a duração da sessão
                     activeEntry.StopTracking(now);
                 }
                 await _appRepository.SaveChangesAsync();
